@@ -21,9 +21,7 @@ public class XmlSigExtAuthzService extends AuthorizationGrpc.AuthorizationImplBa
 
                 String requestBody = checkRequest.getAttributes().getRequest().getHttp().getBody();
 
-                // TODO: Split requestBody to crop out the XML Signature
-
-                if(requestBody.contains("<signature>")) {
+                if(XmlSigUtil.validateXmlMessage(key, requestBody)) {
                     checkResponseBuilder = checkResponseBuilder.setStatus(statusBuilder.setCode(Code.OK_VALUE).build());
                 }
                 else {
