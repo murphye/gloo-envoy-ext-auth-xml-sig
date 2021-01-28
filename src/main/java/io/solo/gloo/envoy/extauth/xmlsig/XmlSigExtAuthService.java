@@ -1,4 +1,4 @@
-package io.solo.gloo.envoy.extauthz.xmlsig;
+package io.solo.gloo.envoy.extauth.xmlsig;
 
 import io.envoyproxy.envoy.service.auth.v3.AuthorizationGrpc;
 import io.envoyproxy.envoy.service.auth.v3.CheckRequest;
@@ -7,7 +7,7 @@ import io.grpc.stub.StreamObserver;
 import com.google.rpc.Code;
 import com.google.rpc.Status;
 
-public class XmlSigExtAuthzService extends AuthorizationGrpc.AuthorizationImplBase {
+public class XmlSigExtAuthService extends AuthorizationGrpc.AuthorizationImplBase {
     @Override
     public final void check(CheckRequest checkRequest, StreamObserver<CheckResponse> responseObserver) {
 
@@ -19,9 +19,10 @@ public class XmlSigExtAuthzService extends AuthorizationGrpc.AuthorizationImplBa
 
             if(contentType.equals("text/xml") || contentType.equals("application/soap+xml")) {
 
+                // The requestBody contains the entire SOAP message
                 String requestBody = checkRequest.getAttributes().getRequest().getHttp().getBody();
 
-                if(XmlSigUtil.validateXmlMessage(key, requestBody)) {
+                if(SoapMessageValidator.validate(requestBody)) {
                     checkResponseBuilder = checkResponseBuilder.setStatus(statusBuilder.setCode(Code.OK_VALUE).build());
                 }
                 else {
@@ -33,7 +34,8 @@ public class XmlSigExtAuthzService extends AuthorizationGrpc.AuthorizationImplBa
             }
         }
         catch(Exception e) {
-            checkResponseBuilder = checkResponseBuilder.setStatus(statusBuilder.setCode(Code.INVALID_ARGUMENT_VALUE).build());
+            checkResponseBuilder = checkResponseBuilder.setStatus(statusBuilder.setCode(Code.UNKNOWN_VALUE).build());
+            e.printStackTrace();
         }
         CheckResponse checkResponse = checkResponseBuilder.build();
 

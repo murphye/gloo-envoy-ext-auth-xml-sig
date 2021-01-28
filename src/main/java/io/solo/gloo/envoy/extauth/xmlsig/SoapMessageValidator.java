@@ -1,0 +1,122 @@
+package io.solo.gloo.envoy.extauth.xmlsig;
+
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.io.StringReader;
+import java.security.Key;
+import java.security.KeyFactory;
+import java.security.Provider;
+import java.security.PublicKey;
+import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
+import java.security.interfaces.RSAPublicKey;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.X509EncodedKeySpec;
+import java.util.Base64;
+
+import javax.xml.crypto.AlgorithmMethod;
+import javax.xml.crypto.KeySelector;
+import javax.xml.crypto.KeySelectorException;
+import javax.xml.crypto.KeySelectorResult;
+import javax.xml.crypto.XMLCryptoContext;
+import javax.xml.crypto.dsig.XMLSignature;
+import javax.xml.crypto.dsig.XMLSignatureFactory;
+import javax.xml.crypto.dsig.dom.DOMValidateContext;
+import javax.xml.crypto.dsig.keyinfo.KeyInfo;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.InputSource;
+
+/**
+ * This class takes a SOAP message which uses WS-Security Extentions (WSSE) to
+ * embed a <BinarySecurityToken> inside the message. This BinarySecurityToken is
+ * actually the PKCS #1 RSA public key in X.509 version 3 PEM Base64 encoded format.
+ * The BinarySecurityToken is also referenced inside the XML <Signature> as a
+ * <SecurityTokenReference>. Additionally, the SOAP <Body> contains a
+ * WS-Security Utility "Id" to reference the XML <Signature> <Reference> which
+ * contains a <DigestValue> that is used to validate the SOAP <Body> itself.
+ */
+public class SoapMessageValidator {
+
+    private final static String WSSE_XMLNS = "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd";
+    private final static String WSU_XMLNS  = "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd";
+    private final static String SOAP_XMLNS = "http://schemas.xmlsoap.org/soap/envelope/";
+
+    public static boolean validate(String soapString) throws Exception {
+        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        factory.setNamespaceAware(true);
+        DocumentBuilder dBuilder = factory.newDocumentBuilder();
+        Document document = dBuilder.parse(new InputSource(new StringReader(soapString)));
+        NodeList signatureList = document.getElementsByTagNameNS(XMLSignature.XMLNS, "Signature");
+        NodeList binarySecurityTokenList = document.getElementsByTagNameNS(WSSE_XMLNS, "BinarySecurityToken");
+        NodeList bodyList = document.getElementsByTagNameNS(SOAP_XMLNS, "Body");
+
+        if (signatureList.getLength() == 0) {
+            throw new Exception("DS <Signature> element not found!");
+        }
+
+        if (binarySecurityTokenList.getLength() == 0) {
+            throw new Exception("WSSE <BinarySecurityToken> element not found!");
+        }
+
+        if (bodyList.getLength() == 0) {
+            throw new Exception("SOAP <Body> element not found!");
+        }
+
+        Node signatureNode = signatureList.item(0);
+        Node binarySecurityNode = binarySecurityTokenList.item(0);
+        Node bodyNode = bodyList.item(0);
+
+        // Partial Credit: http://rcbj.net/blog01/2012/12/30/convert-an-x509v3-binary-security-token-to-pem-format/
+        byte[] decodedCert = Base64.getMimeDecoder().decode(binarySecurityNode.getTextContent().getBytes("UTF-8"));
+        InputStream targetStream = new ByteArrayInputStream(decodedCert);
+        X509Certificate certificate = (X509Certificate) CertificateFactory.getInstance("X509").generateCertificate(targetStream);
+        RSAPublicKey publicKey = (RSAPublicKey)certificate.getPublicKey();
+        return validateSignature(signatureNode, bodyNode, publicKey);
+    }
+
+    /*
+     * Credit: https://stackoverflow.com/a/9443960
+     */
+    private static boolean validateSignature(Node signatureNode, Node bodyTag, PublicKey publicKey) throws Exception {
+        // Create a DOM XMLSignatureFactory that will be used to unmarshal the document containing the XMLSignature
+        String providerName = System.getProperty("jsr105Provider", "org.jcp.xml.dsig.internal.dom.XMLDSigRI");
+        XMLSignatureFactory fac = XMLSignatureFactory.getInstance("DOM",
+                (Provider) Class.forName(providerName).getDeclaredConstructor().newInstance());
+
+        // Create a DOMValidateContext and specify a KeyValue KeySelector and document context
+        DOMValidateContext valContext = new DOMValidateContext(new SimpleKeySelector(publicKey), signatureNode);
+        valContext.setIdAttributeNS((Element) bodyTag, WSU_XMLNS, "Id");
+
+        // Unmarshal and validate the XMLSignature.
+        XMLSignature signature = fac.unmarshalXMLSignature(valContext);
+        return signature.validate(valContext);
+    }
+
+    /**
+     * Credit: https://stackoverflow.com/a/9443960
+     * KeySelectorResult with a predefined key. The public key is not stored in the <Signature> directly for SOAP messages.
+     */
+    private static class SimpleKeySelector extends KeySelector {
+        private PublicKey key;
+
+        public SimpleKeySelector(PublicKey key) {
+            this.key = key;
+        }
+
+        @Override
+        public KeySelectorResult select(KeyInfo keyInfo, KeySelector.Purpose purpose, AlgorithmMethod method, XMLCryptoContext context) throws KeySelectorException {
+            return new KeySelectorResult() {
+                @Override
+                public Key getKey() {
+                    return key;
+                }
+            };
+        }
+    }
+}

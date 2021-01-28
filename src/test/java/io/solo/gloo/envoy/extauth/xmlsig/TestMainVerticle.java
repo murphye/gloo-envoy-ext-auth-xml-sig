@@ -1,4 +1,4 @@
-package io.solo.gloo.envoy.extauthz.xmlsig;
+package io.solo.gloo.envoy.extauth.xmlsig;
 
 import io.vertx.core.Vertx;
 import io.vertx.junit5.VertxExtension;

@@ -1,25 +1,34 @@
-<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/">
-    <SOAP-ENV:Header>
-        <SOAP-SEC:Signature xmlns:SOAP-SEC="http://schemas.xmlsoap.org/soap/security/2000-12" SOAP-ENV:actor="some-URI" SOAP-ENV:mustUnderstand="1">
-            <ds:Signature xmlns:ds="http://www.w3.org/2000/09/xmldsig#">
-                <ds:SignedInfo>
-                    <ds:CanonicalizationMethod Algorithm="http://www.w3.org/TR/2000/CR-xml-c14n-20001026"></ds:CanonicalizationMethod>
-                    <ds:SignatureMethod Algorithm="http://www.w3.org/2000/09/xmldsig#dsa-sha1" />
-                    <ds:Reference URI="#Body">
-                        <ds:Transforms>
-                            <ds:Transform Algorithm="http://www.w3.org/TR/2000/CR-xml-c14n-20001026" />
-                        </ds:Transforms>
-                        <ds:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1" />
-                        <ds:DigestValue>j6lwx3rvEPO0vKtMup4NbeVu8nk=</ds:DigestValue>
-                    </ds:Reference>
-                </ds:SignedInfo>
-                <ds:SignatureValue>MC0CFFrVLtRlk=...</ds:SignatureValue>
-            </ds:Signature>
-        </SOAP-SEC:Signature>
-    </SOAP-ENV:Header>
-    <SOAP-ENV:Body xmlns:SOAP-SEC="http://schemas.xmlsoap.org/soap/security/2000-12" SOAP-SEC:id="Body">
-        <m:GetLastTradePrice xmlns:m="some-URI">
-            <m:symbol>IBM</m:symbol>
-        </m:GetLastTradePrice>
-    </SOAP-ENV:Body>
-</SOAP-ENV:Envelope>
+<?xml version="1.0" encoding="UTF-8"?>
+<env:Envelope xmlns:env="http://schemas.xmlsoap.org/soap/envelope/">
+  <env:Header>
+    <wsse:Security xmlns:wsse="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd" xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd" env:mustUnderstand="1">
+      <wsse:BinarySecurityToken EncodingType="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-soap-message-security-1.0#Base64Binary" ValueType="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-x509-token-profile-1.0#X509v3" wsu:Id="X509-3FE116EADE4A5ACE1C14636491396431">MIICCTCCAXKgAwIBAgIETzVFkDANBgkqhkiG9w0BAQUFADBJMQswCQYDVQQGEwJSVTEKMAgGA1UECBMBMTEKMAgGA1UEBxMBMTEKMAgGA1UEChMBMTEKMAgGA1UECxMBMTEKMAgGA1UEAxMBMTAeFw0xMjAyMTAxNjI4MDBaFw0xMjA1MTAxNjI4MDBaMEkxCzAJBgNVBAYTAlJVMQowCAYDVQQIEwExMQowCAYDVQQHEwExMQowCAYDVQQKEwExMQowCAYDVQQLEwExMQowCAYDVQQDEwExMIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCdwxyRNYlWADnTtzH9/s/ehhD2iFzvF2xI+tBNyhbBb98EQNiIFdEegwGPhtd3Cfe1lQqtddWdFX2uLqozMAgd1KzSEuH9lI5DPiir3RfVdy+Irs5ZYiD/H4/DcUMUNyVcWspf9oG25wNdwNHKY8Aqz2269uYMCCoIBuWt6POwFQIDAQABMA0GCSqGSIb3DQEBBQUAA4GBAGLgTXbn7h2rBjv++6OopDooRifc4e2k+9sSTpLNegs9OvQzR8DpmQ/6Vt0RFprIdXSv+IVMcmL8Q2dmI9v0R61NIhdEjzSVbO2+PF9h1ShUARzMawRC/EOdjwVjDsk1WMxF18+wvH9SQxBSK3H2WpJbDWBxZCOW5CK1N6AKKJiC</wsse:BinarySecurityToken>
+      <ds:Signature xmlns:ds="http://www.w3.org/2000/09/xmldsig#" Id="SIG-3FE116EADE4A5ACE1C14636491396595">
+        <ds:SignedInfo>
+          <ds:CanonicalizationMethod Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#" />
+          <ds:SignatureMethod Algorithm="http://www.w3.org/2000/09/xmldsig#rsa-sha1" />
+          <ds:Reference URI="#id-3FE116EADE4A5ACE1C14636491396564">
+            <ds:Transforms>
+              <ds:Transform Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#" />
+            </ds:Transforms>
+            <ds:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1" />
+            <ds:DigestValue>hsrhNdt06tOUYlbV4gmkEwZEpXg=</ds:DigestValue>
+          </ds:Reference>
+        </ds:SignedInfo>
+        <ds:SignatureValue>F0q0NV7kaSbAcsLHxVpYD1bQ1RAJcw6wPapDKAM9PIcs7EuS9S5PlE4cQMfAp1WgsKa91r3op1OQ5UrYmmdj/UneYawdPIYSaoFBGjndTXZnOCKp4YfRTQGZ2EVJRFHJbPsTsqHedPAyJLHhciViguTGeuA0hZAQN97KB/9ZLmY=</ds:SignatureValue>
+        <ds:KeyInfo Id="KI-3FE116EADE4A5ACE1C14636491396452">
+          <wsse:SecurityTokenReference wsu:Id="STR-3FE116EADE4A5ACE1C14636491396483">
+            <wsse:Reference URI="#X509-3FE116EADE4A5ACE1C14636491396431" ValueType="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-x509-token-profile-1.0#X509v3" />
+          </wsse:SecurityTokenReference>
+        </ds:KeyInfo>
+      </ds:Signature>
+    </wsse:Security>
+    <add:MessageID xmlns:add="http://schemas.xmlsoap.org/ws/2004/08/addressing">urn:uuid:b43ab47f-8ecb-4ac4-8b36-ee3649a734bf</add:MessageID>
+  </env:Header>
+  <env:Body xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd" wsu:Id="id-3FE116EADE4A5ACE1C14636491396564">
+    <request>
+      <param1>234</param1>
+      <param2>sdf2342</param2>
+    </request>
+  </env:Body>
+</env:Envelope>

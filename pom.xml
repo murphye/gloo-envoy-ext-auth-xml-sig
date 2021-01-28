@@ -17,7 +17,7 @@
         <vertx.version>4.0.0</vertx.version>
         <junit-jupiter.version>5.7.0</junit-jupiter.version>
 
-        <main.verticle>io.solo.gloo.envoy.extauthz.xmlsig.MainVerticle</main.verticle>
+        <main.verticle>io.solo.gloo.envoy.extauth.xmlsig.MainVerticle</main.verticle>
         <launcher.class>io.vertx.core.Launcher</launcher.class>
     </properties>
 
