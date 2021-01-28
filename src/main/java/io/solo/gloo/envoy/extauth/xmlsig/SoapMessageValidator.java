@@ -85,8 +85,7 @@ public class SoapMessageValidator {
         Node binarySecurityNode = binarySecurityTokenList.item(0);
         Node bodyNode = bodyList.item(0);
 
-        // Partial Credit:
-        // http://rcbj.net/blog01/2012/12/30/convert-an-x509v3-binary-security-token-to-pem-format/
+        // Partial Credit: http://rcbj.net/blog01/2012/12/30/convert-an-x509v3-binary-security-token-to-pem-format/
         byte[] decodedCert = Base64.getMimeDecoder().decode(binarySecurityNode.getTextContent().getBytes("UTF-8"));
         InputStream targetStream = new ByteArrayInputStream(decodedCert);
         X509Certificate certificate = (X509Certificate) CertificateFactory.getInstance("X509")
@@ -119,7 +118,9 @@ public class SoapMessageValidator {
         return signature.validate(valContext);
     }
 
-    // Credit: https://stackoverflow.com/questions/6143646/validate-x509-certificates-using-java-apis/6379434#6379434
+    /*
+     * Credit: https://stackoverflow.com/questions/6143646/validate-x509-certificates-using-java-apis/6379434#6379434
+     */
     private static void validateAgainstTrustManager(X509Certificate certificate) throws CertificateException, NoSuchAlgorithmException, KeyStoreException {
         TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
         trustManagerFactory.init((KeyStore)null);
@@ -134,7 +135,7 @@ public class SoapMessageValidator {
         }
     }
 
-    /**
+    /*
      * Credit: https://stackoverflow.com/a/9443960
      * KeySelectorResult with a predefined key. The public key is not stored in the <Signature> directly for SOAP messages.
      */
