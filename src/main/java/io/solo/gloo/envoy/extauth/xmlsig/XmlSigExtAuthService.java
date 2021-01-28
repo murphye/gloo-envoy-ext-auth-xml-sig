@@ -10,7 +10,6 @@ import com.google.rpc.Status;
 public class XmlSigExtAuthService extends AuthorizationGrpc.AuthorizationImplBase {
     @Override
     public final void check(CheckRequest checkRequest, StreamObserver<CheckResponse> responseObserver) {
-
         CheckResponse.Builder checkResponseBuilder = CheckResponse.newBuilder();
         Status.Builder statusBuilder = Status.newBuilder();
 

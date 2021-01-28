@@ -4,14 +4,11 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.StringReader;
 import java.security.Key;
-import java.security.KeyFactory;
 import java.security.Provider;
 import java.security.PublicKey;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.security.interfaces.RSAPublicKey;
-import java.security.spec.InvalidKeySpecException;
-import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
 
 import javax.xml.crypto.AlgorithmMethod;
@@ -35,7 +32,7 @@ import org.xml.sax.InputSource;
 /**
  * This class takes a SOAP message which uses WS-Security Extentions (WSSE) to
  * embed a <BinarySecurityToken> inside the message. This BinarySecurityToken is
- * actually the PKCS #1 RSA public key in X.509 version 3 PEM Base64 encoded format.
+ * actually the RSA public key in X.509 version 3 PEM Base64 encoded format.
  * The BinarySecurityToken is also referenced inside the XML <Signature> as a
  * <SecurityTokenReference>. Additionally, the SOAP <Body> contains a
  * WS-Security Utility "Id" to reference the XML <Signature> <Reference> which
