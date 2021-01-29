@@ -98,6 +98,7 @@ public class XmlSigExtAuthServiceTest {
         }
     }
 
+    @Disabled
     @Test
     void validXml(VertxTestContext testContext) throws Throwable {
         validateXml(testContext, "valid.xml", false);

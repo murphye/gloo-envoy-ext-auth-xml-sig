@@ -32,6 +32,11 @@ public class XmlSigExtAuthService extends AuthorizationGrpc.AuthorizationImplBas
                 checkResponseBuilder = checkResponseBuilder.setStatus(statusBuilder.setCode(Code.INVALID_ARGUMENT_VALUE).build());
             }
         }
+        /* TODO: How to properly handle these types of validation errors (not able to catch here)
+        catch(sun.security.validator.ValidatorException ve) {
+
+        }
+        */
         catch(Exception e) {
             checkResponseBuilder = checkResponseBuilder.setStatus(statusBuilder.setCode(Code.UNKNOWN_VALUE).build());
             e.printStackTrace();

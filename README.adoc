@@ -1,4 +1,34 @@
-= Gloo-envoy-ext-auth-xml-sig
+= Gloo Edge/Envoy External Authorization to Validate SOAP Messages
+
+This project provides a reference implementation for a custom external authorization service that can be used with Gloo Edge to validate SOAP/XML messages that use the WS-Security SOAP extensions. The implementation is narrow focus, and may need to be modified for your specific configurations for SOAP and associated WS-Security.
+
+You might consider using this implementation if you are looking to replace a legacy middeware (and applicances), such as DataPower, to validate SOAP messages before they are forwarded to backend SOAP endpoints. Just the same as DataPower, Gloo Edge can then be a "firewall" to deny invalid SOAP messages before they get inside your internal network. You can also combine this authorization mechanism with other Gloo Edge features, such as rate limiting, to have a comprehensive solution for a safe and performant SOAP gateway into your system.
+
+== Technologies Used
+
+* Gloo Edge (which also uses Envoy)
+* Kubernetes to deploy Gloo Edge
+* Docker to build an image
+* Java 11, including numerous built-in APIs for security and XML
+* gRPC, including pre-generated Java code to build a gRPC Service for Envoy
+* Vert.x to launch the gRPC service
+* Vault to generate certificates for testing purposes
+
+
+
+== Setting up a Certificate Authority Using Vault
+
+In order to test this service, you must have a valid Root Certificate Authority (CA) and Intermediate CA. That way you can install the CAs into you this service's JVM TrustStore and also generate public certificates that can be used to generate signed SOAP messages.
+
+The CAs can be easily created using HashiCorp Vault as shown in this https://learn.hashicorp.com/tutorials/vault/pki-engine[article]. Let's walk through the steps required
+to do this.
+
+
+
+To make this easier to test, we can use HashiCorp Vault to create a Certificate Authority and generate certificates that can be used
+to test the validation of SOAP messages. An article documenting this approach is here
+
+
 
 image:https://img.shields.io/badge/vert.x-4.0.0-purple.svg[link="https://vertx.io"]
 
@@ -21,11 +51,10 @@ To run your application:
 ./mvnw clean compile exec:java
 ```
 
-== Help
 
-* https://vertx.io/docs/[Vert.x Documentation]
-* https://stackoverflow.com/questions/tagged/vert.x?sort=newest&pageSize=15[Vert.x Stack Overflow]
-* https://groups.google.com/forum/?fromgroups#!forum/vertx[Vert.x User Group]
-* https://gitter.im/eclipse-vertx/vertx-users[Vert.x Gitter]
+
+
+
+
 
 

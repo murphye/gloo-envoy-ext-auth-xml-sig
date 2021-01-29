@@ -69,6 +69,8 @@ public class SoapMessageValidator {
         NodeList binarySecurityTokenList = document.getElementsByTagNameNS(WSSE_XMLNS, "BinarySecurityToken");
         NodeList bodyList = document.getElementsByTagNameNS(SOAP_XMLNS, "Body");
 
+        // TODO: Get Timestamp -> Expires
+
         if (signatureList.getLength() == 0) {
             throw new Exception("DS <Signature> element not found!");
         }
