@@ -13,6 +13,8 @@ import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.security.interfaces.RSAPublicKey;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.Base64;
 
 import javax.net.ssl.TrustManager;
@@ -68,6 +70,7 @@ public class SoapMessageValidator {
         NodeList signatureList = document.getElementsByTagNameNS(XMLSignature.XMLNS, "Signature");
         NodeList binarySecurityTokenList = document.getElementsByTagNameNS(WSSE_XMLNS, "BinarySecurityToken");
         NodeList bodyList = document.getElementsByTagNameNS(SOAP_XMLNS, "Body");
+        NodeList timestampList = document.getElementsByTagNameNS(WSU_XMLNS, "Timestamp");
 
         // TODO: Get Timestamp -> Expires
 
@@ -83,9 +86,25 @@ public class SoapMessageValidator {
             throw new Exception("SOAP <Body> element not found!");
         }
 
+        if (timestampList.getLength() == 0) {
+            throw new Exception("WSSE <Timestamp> element not found!");
+        }
+
         Node signatureNode = signatureList.item(0);
         Node binarySecurityNode = binarySecurityTokenList.item(0);
         Node bodyNode = bodyList.item(0);
+        Node timestampNode = timestampList.item(0);
+
+        // Check that the message has not yet expired
+        for(int i = 0; i < timestampNode.getChildNodes().getLength(); i++) {
+            if(timestampNode.getChildNodes().item(i).getLocalName().equals("Expires")) {
+                String dateStr = timestampNode.getChildNodes().item(i).getTextContent();
+                if(ZonedDateTime.parse(dateStr).isBefore(ZonedDateTime.now(ZoneId.of("UTC")))) {
+                    throw new Exception("SOAP message has expired with a timestamp of: " + dateStr);
+                }
+                break;
+            }
+        }
 
         // Partial Credit: http://rcbj.net/blog01/2012/12/30/convert-an-x509v3-binary-security-token-to-pem-format/
         byte[] decodedCert = Base64.getMimeDecoder().decode(binarySecurityNode.getTextContent().getBytes("UTF-8"));
@@ -97,15 +116,14 @@ public class SoapMessageValidator {
         validateAgainstTrustManager(certificate); // Check PublicKey against local TrustStore certificate chain
 
         RSAPublicKey publicKey = (RSAPublicKey) certificate.getPublicKey();
-        return validateSignature(signatureNode, bodyNode, publicKey);
+        return validateSignature(timestampNode, signatureNode, bodyNode, publicKey);
     }
 
     /*
      * Credit: https://stackoverflow.com/a/9443960
      */
-    private static boolean validateSignature(Node signatureNode, Node bodyTag, PublicKey publicKey) throws Exception {
-        // Create a DOM XMLSignatureFactory that will be used to unmarshal the document
-        // containing the XMLSignature
+    private static boolean validateSignature(Node timestampNode, Node signatureNode, Node bodyTag, PublicKey publicKey) throws Exception {
+        // Create a DOM XMLSignatureFactory that will be used to unmarshal the document containing the XMLSignature
         String providerName = System.getProperty("jsr105Provider", "org.jcp.xml.dsig.internal.dom.XMLDSigRI");
         XMLSignatureFactory fac = XMLSignatureFactory.getInstance("DOM",
                 (Provider) Class.forName(providerName).getDeclaredConstructor().newInstance());
@@ -114,6 +132,7 @@ public class SoapMessageValidator {
         // context
         DOMValidateContext valContext = new DOMValidateContext(new SimpleKeySelector(publicKey), signatureNode);
         valContext.setIdAttributeNS((Element) bodyTag, WSU_XMLNS, "Id");
+        valContext.setIdAttributeNS((Element) timestampNode, WSU_XMLNS, "Id");
 
         // Unmarshal and validate the XMLSignature.
         XMLSignature signature = fac.unmarshalXMLSignature(valContext);
@@ -126,7 +145,6 @@ public class SoapMessageValidator {
     private static void validateAgainstTrustManager(X509Certificate certificate) throws CertificateException, NoSuchAlgorithmException, KeyStoreException {
         TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
         trustManagerFactory.init((KeyStore)null);
-        // you could use a non-default KeyStore as your truststore too, instead of null.
 
         X509Certificate[] certificateArray = {certificate};
         for (TrustManager trustManager: trustManagerFactory.getTrustManagers()) {

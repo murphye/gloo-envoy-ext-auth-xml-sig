@@ -16,12 +16,27 @@ You might consider using this implementation if you are looking to replace a leg
 
 
 
-== Setting up a Certificate Authority Using Vault
+== Setting up a Certificate Authority and Issuing Certificates Using Vault
 
 In order to test this service, you must have a valid Root Certificate Authority (CA) and Intermediate CA. That way you can install the CAs into you this service's JVM TrustStore and also generate public certificates that can be used to generate signed SOAP messages.
 
-The CAs can be easily created using HashiCorp Vault as shown in this https://learn.hashicorp.com/tutorials/vault/pki-engine[article]. Let's walk through the steps required
-to do this.
+The CAs can be easily created using HashiCorp Vault as shown in this https://learn.hashicorp.com/tutorials/vault/pki-engine[article]. Let's walk through the steps required to do this.
+
+=== 1) Install Vault
+
+Follow the instructions https://learn.hashicorp.com/tutorials/vault/getting-started-install?in=vault/getting-started[here] for your operating system.
+
+==== Start Vault in Dev Mode
+
+```
+vault server -dev -dev-root-token-id=root
+```
+
+
+
+=== 2) Install Vault
+
+
 
 
 
@@ -53,8 +68,87 @@ To run your application:
 
 
 
+vault server -dev -dev-root-token-id=root
+export VAULT_ADDR='http://127.0.0.1:8200'
 
+=== 1) Generate Root Certificate Authority
 
+vault secrets enable -path=acme_com pki
+vault secrets tune -max-lease-ttl=87600h acme_com
+vault write -field=certificate acme_com/root/generate/internal common_name="acme.com Root Authority" ttl=87600h > acme_com_ca_cert.crt
+vault write acme_com/config/urls issuing_certificates="http://127.0.0.1:8200/v1/acme_com/ca" crl_distribution_points="http://127.0.0.1:8200/v1/acme_com/crl"
 
+=== 2) Generate Intermediate Certificate Authority
 
+```
+vault secrets enable -path=service1_acme_com pki
+vault secrets tune -max-lease-ttl=26280h service1_acme_com
+vault write -format=json service1_acme_com/intermediate/generate/internal common_name="service1.acme.com Intermediate Authority" | jq -r '.data.csr' > service1_acme_com_ca_cert.csr
+vault write -format=json acme_com/root/sign-intermediate csr=@service1_acme_com_ca_cert.csr format=pem_bundle ttl="26280h" | jq -r '.data.certificate' > service1_acme_com_ca_cert.crt
+vault write service1_acme_com/intermediate/set-signed certificate=@service1_acme_com_ca_cert.crt
+```
 
+=== 3) Issue Client Keys and Certificates
+
+==== a) Create a Role
+
+```
+vault write service1_acme_com/roles/partner_com allowed_domains="partner.com" allow_subdomains=true max_ttl="13140h"
+```
+
+==== b) Issue a Client Private Key and Certificate
+
+```
+vault write -format=json service1_acme_com/issue/partner_com common_name="client1.partner.com" ttl="13140h" > client1_partner_com.json
+cat client1_partner_com.json | jq -r '.data.private_key' > client1_partner_com.pem
+cat client1_partner_com.json | jq -r '.data.certificate' > client1_partner_com.crt
+cat client1_partner_com.json | jq -r '.data.issuing_ca' > client1_partner_com_chain.crt
+cat client1_partner_com.json | jq -r '.data.ca_chain[]' >> client1_partner_com_chain.crt
+rm client1_partner_com.json
+```
+
+==== c) Create a PKSC12 Archive File for Distribution to Clients
+
+```
+openssl pkcs12 -export -inkey client1_partner_com.pem -in client1_partner_com.crt -certfile client1_partner_com_chain.crt -name client1_partner_com -out client1_partner_com.p12
+```
+
+Enter a password, such as "password"
+
+=== 4) (Optional) Issue a Service Leaf Certificate for the Service
+
+If you want to provide TLS termination, or potentially mTLS between the client and server, you will need a leaf certificate for the service. This leaf certificate is not needed for the core of this demo, but this demo can be extended to use it.
+
+=== a) Create a Role
+
+```
+vault write service1_acme_com/roles/service1_acme_com allowed_domains="service1.acme.com" allow_bare_domains=true allow_subdomains=true max_ttl="8760h"
+```
+
+==== b) Issue a Service Private Key and Leaf Certificate
+
+```
+vault write -format=json service1_acme_com/issue/service1_acme_com common_name="service1.acme.com" ttl="8760h" > service1_acme_com.json
+cat service1_acme_com.json | jq -r '.data.private_key' > service1_acme_com.pem
+cat service1_acme_com.json | jq -r '.data.certificate' > service1_acme_com.crt
+cat service1_acme_com.json | jq -r '.data.issuing_ca' > service1_acme_com_chain.crt
+cat service1_acme_com.json | jq -r '.data.ca_chain[]' >> service1_acme_com_chain.crt
+rm service1_acme_com.json
+```
+
+=== 5) Install CA Certs into JKS Truststore
+
+keytool -import -alias acme_com_ca_cert -trustcacerts -file acme_com_ca_cert.crt -keystore acme-truststore.jks
+keytool -import -alias service1_acme_com_ca_cert -trustcacerts -file service1_acme_com_ca_cert.crt -keystore acme-truststore.jks
+
+System.setProperty("javax.net.ssl.trustStore", "acme-truststore.jks");
+-Djavax.net.ssl.keyStore=path/to/acme-truststore.jks
+
+cp acme-truststore.jks ../src/main/resources
+cp client1_partner_com.p12 ../src/test/resources
+
+=== 6) Install Cert in JKS Keystore
+
+keytool -importkeystore -srckeystore client1_partner_com.p12 -srcstoretype PKCS12 -storepass changeit -destkeystore partner-keystore.jks
+
+./mvnw compile test -Djavax.net.ssl.trustStore=/home/eric/GitHub/gloo-envoy-ext-auth-xml-sig/certs/acme-truststore.jks -Djavax.net.ssl.trustStorePassword=changeit

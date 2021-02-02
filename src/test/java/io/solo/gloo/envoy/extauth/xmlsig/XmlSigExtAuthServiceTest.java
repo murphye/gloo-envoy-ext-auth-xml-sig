@@ -98,10 +98,10 @@ public class XmlSigExtAuthServiceTest {
         }
     }
 
-    @Disabled
+    //@Disabled
     @Test
     void validXml(VertxTestContext testContext) throws Throwable {
-        validateXml(testContext, "valid.xml", false);
+        validateXml(testContext, "output.soap.xml", false);
 
     }
 

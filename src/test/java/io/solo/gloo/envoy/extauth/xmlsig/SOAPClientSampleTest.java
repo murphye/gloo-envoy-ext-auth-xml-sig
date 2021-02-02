@@ -57,7 +57,8 @@ public class SOAPClientSampleTest {
     5.Send message to the web service endpoint.
      */
 
-    //@Disabled
+
+    @Disabled
     @Test
     void test() throws Exception {
         SOAPClientSampleTest client = new SOAPClientSampleTest();
@@ -134,7 +135,8 @@ public class SOAPClientSampleTest {
 
 
         timestamp.addChildElement("Created", "wsu").setValue(timeStampFormatter.format(ZonedDateTime.now().toInstant().atZone(ZoneId.of("UTC"))));
-        timestamp.addChildElement("Expires", "wsu").setValue(timeStampFormatter.format(ZonedDateTime.now().plusSeconds(30).toInstant().atZone(ZoneId.of("UTC"))));
+        //timestamp.addChildElement("Expires", "wsu").setValue(timeStampFormatter.format(ZonedDateTime.now().plusSeconds(30).toInstant().atZone(ZoneId.of("UTC"))));
+        timestamp.addChildElement("Expires", "wsu").setValue(timeStampFormatter.format(ZonedDateTime.now().plusMinutes(5).toInstant().atZone(ZoneId.of("UTC"))));
 
         return timestamp;
     }
@@ -142,13 +144,21 @@ public class SOAPClientSampleTest {
     private java.security.cert.Certificate getCertificate() throws Exception {
 
         // (iv) Open the Seat using KeyStore
-        //KeyStore keystore = KeyStore.getInstance("PKCS12");
-        //keystore.load(new FileInputStream(new File("C:\\projects\\certificates\\999963110.p12")), passwordHashedbase64.toCharArray());
+        KeyStore keyStore = KeyStore.getInstance("PKCS12");
+        keyStore.load(new FileInputStream(new File("/home/eric/GitHub/gloo-envoy-ext-auth-xml-sig/certs/partner-keystore.jks")), "changeit".toCharArray());
 
-        KeyStore keyStore = PemReader.loadKeyStore(getResourceFile("rsa.crt"), getResourceFile("rsa.key"), Optional.empty());
+        //KeyStore keyStore = PemReader.loadKeyStore(getResourceFile("rsa.crt"), getResourceFile("rsa.key"), Optional.empty());
 
         // (v) Extract the certificate.
-        java.security.cert.Certificate cert = keyStore.getCertificate("key");
+        java.security.cert.Certificate cert = keyStore.getCertificate("client1_partner_com");
+
+        var iterator = keyStore.aliases().asIterator();
+
+        while(iterator.hasNext()) {
+            System.out.println(">>>>>>>> " + iterator.next());
+        }
+
+
 
         return cert;
     }
@@ -190,10 +200,22 @@ public class SOAPClientSampleTest {
         //KeyStore keystore = KeyStore.getInstance("PKCS12");
         //keystore.load(new FileInputStream(new File("C:\\projects\\certificates\\999963110.p12")), passwordHashedBase64.toCharArray());
 
-        KeyStore keyStore = PemReader.loadKeyStore(getResourceFile("rsa.crt"), getResourceFile("rsa.key"), Optional.empty());
+
+        // (iv) Open the Seat using KeyStore
+        KeyStore keyStore = KeyStore.getInstance("PKCS12");
+        keyStore.load(new FileInputStream(new File("/home/eric/GitHub/gloo-envoy-ext-auth-xml-sig/certs/partner-keystore.jks")), "changeit".toCharArray());
+
+        //KeyStore keyStore = PemReader.loadKeyStore(getResourceFile("rsa.crt"), getResourceFile("rsa.key"), Optional.empty());
+
+        // (v) Extract the certificate.
+        //java.security.cert.Certificate cert = keyStore.getCertificate("client1_partner_com");
+
+       // KeyStore keyStore = PemReader.loadKeyStore(getResourceFile("rsa.crt"), getResourceFile("rsa.key"), Optional.empty());
+
+       var iterator = keyStore.aliases().asIterator();
 
         // (v) Extract Private Key
-        PrivateKey key = (PrivateKey) keyStore.getKey("key", "".toCharArray());
+        PrivateKey key = (PrivateKey) keyStore.getKey("client1_partner_com", "changeit".toCharArray());
         return key;
     }
 

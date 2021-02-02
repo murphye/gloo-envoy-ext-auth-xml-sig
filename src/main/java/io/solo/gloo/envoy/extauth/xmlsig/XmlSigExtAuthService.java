@@ -42,6 +42,7 @@ public class XmlSigExtAuthService extends AuthorizationGrpc.AuthorizationImplBas
             e.printStackTrace();
         }
         CheckResponse checkResponse = checkResponseBuilder.build();
+        // TODO: Can we return an error message?
 
         responseObserver.onNext(checkResponse);
         responseObserver.onCompleted();
