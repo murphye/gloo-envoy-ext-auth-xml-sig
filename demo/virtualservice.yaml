@@ -1,0 +1,24 @@
+apiVersion: gateway.solo.io/v1
+kind: VirtualService
+metadata:
+  name: default
+  namespace: gloo-system
+spec:
+  virtualHost:
+    domains:
+    - '*'
+    options:
+      extauth:
+        customAuth: {}
+    routes:
+    - matchers:
+       - methods:
+          - POST
+         prefix: /address-xml
+      routeAction:
+        single:
+          upstream:
+            name: default-address-verification-service-8080
+            namespace: gloo-system
+      options:
+        prefixRewrite: /ws

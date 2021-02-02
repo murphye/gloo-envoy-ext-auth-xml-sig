@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web:QASearch xmlns:web="http://www.qas.com/OnDemand-2011-03">
+  <web:Country>USA</web:Country>
+  <web:Engine Flatten="true" Timeout="1000">Verification</web:Engine>
+  <web:Layout>RegB layout</web:Layout>
+  <web:Search>1001 99th St. E. Seattle WA 98101 USA</web:Search>
+</web:QASearch>

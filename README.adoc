@@ -152,3 +152,22 @@ cp client1_partner_com.p12 ../src/test/resources
 keytool -importkeystore -srckeystore client1_partner_com.p12 -srcstoretype PKCS12 -storepass changeit -destkeystore partner-keystore.jks
 
 ./mvnw compile test -Djavax.net.ssl.trustStore=/home/eric/GitHub/gloo-envoy-ext-auth-xml-sig/certs/acme-truststore.jks -Djavax.net.ssl.trustStorePassword=changeit
+
+
+./mvnw package
+
+docker build -t murphye/gloo-edge-soap-authorization-service:0.0.8-SNAPSHOT .
+
+docker push murphye/gloo-edge-soap-authorization-service:0.0.8-SNAPSHOT
+
+
+=== Deploy Custom Auth Service
+
+```
+cd demo
+kubectl apply -n gloo-system -f deployment.yaml
+```
+
+
+
+curl -i -w "\n%{time_total}" --header "Content-Type: text/xml" --data-binary @output.soap.xml http://localhost:8081/address-xml

@@ -52,14 +52,15 @@ import org.xml.sax.InputSource;
  *
  * 1) The general validity of the client's X.509 certificate (i.e. not expired)
  * 2) The certificate is validated against the certificate chain installed in the
- *    local JVM X509 TrustStore. The cerificate must have been generated from an
+ *    local JVM TrustStore. The cerificate must have been generated from an
  *    installed Certificate Authority (including intermediate CA certs)
  * 3) The digest is used to validate the SOAP message body (to prevent tampering)
+ * 4) The SOAP message itself is not expired (i.e. took to long to send)
  */
 public class SoapMessageValidator {
 
     private final static String WSSE_XMLNS = "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd";
-    private final static String WSU_XMLNS = "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd";
+    private final static String WSU_XMLNS  = "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd";
     private final static String SOAP_XMLNS = "http://schemas.xmlsoap.org/soap/envelope/";
 
     public static boolean validate(String soapString) throws Exception {
@@ -71,8 +72,6 @@ public class SoapMessageValidator {
         NodeList binarySecurityTokenList = document.getElementsByTagNameNS(WSSE_XMLNS, "BinarySecurityToken");
         NodeList bodyList = document.getElementsByTagNameNS(SOAP_XMLNS, "Body");
         NodeList timestampList = document.getElementsByTagNameNS(WSU_XMLNS, "Timestamp");
-
-        // TODO: Get Timestamp -> Expires
 
         if (signatureList.getLength() == 0) {
             throw new Exception("DS <Signature> element not found!");
@@ -87,7 +86,7 @@ public class SoapMessageValidator {
         }
 
         if (timestampList.getLength() == 0) {
-            throw new Exception("WSSE <Timestamp> element not found!");
+            throw new Exception("WSU <Timestamp> element not found!");
         }
 
         Node signatureNode = signatureList.item(0);
@@ -95,7 +94,7 @@ public class SoapMessageValidator {
         Node bodyNode = bodyList.item(0);
         Node timestampNode = timestampList.item(0);
 
-        // Check that the message has not yet expired
+        // Check that the SOAP message has not yet expired
         for(int i = 0; i < timestampNode.getChildNodes().getLength(); i++) {
             if(timestampNode.getChildNodes().item(i).getLocalName().equals("Expires")) {
                 String dateStr = timestampNode.getChildNodes().item(i).getTextContent();
@@ -136,7 +135,13 @@ public class SoapMessageValidator {
 
         // Unmarshal and validate the XMLSignature.
         XMLSignature signature = fac.unmarshalXMLSignature(valContext);
-        return signature.validate(valContext);
+
+        boolean validationResult = signature.validate(valContext);
+
+System.out.println("validationResult = " + validationResult);
+
+        return validationResult;
+
     }
 
     /*

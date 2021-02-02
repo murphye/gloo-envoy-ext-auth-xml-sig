@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: gloo-edge-soap-authorization-service
+  name: gloo-edge-soap-authorization-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gloo-edge-soap-authorization-service
+  template:
+    metadata:
+      labels:
+        app: gloo-edge-soap-authorization-service
+    spec:
+      containers:
+      - image: murphye/gloo-edge-soap-authorization-service:0.0.8-SNAPSHOT
+        name: gloo-edge-soap-authorization-service
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    gloo.solo.io/h2_service: "true"
+  labels:
+    app: gloo-edge-soap-authorization-service
+  name: gloo-edge-soap-authorization-service
+spec:
+  ports:
+  - name: 8000-8000
+    port: 8000
+    protocol: TCP
+    targetPort: 8000
+  selector:
+    app: gloo-edge-soap-authorization-service

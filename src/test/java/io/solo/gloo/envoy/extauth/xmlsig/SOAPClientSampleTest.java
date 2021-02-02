@@ -70,7 +70,7 @@ public class SOAPClientSampleTest {
 
     private Document readInXMLFile() throws ParserConfigurationException, SAXException, IOException
     {
-        File requestFile = new File("/home/eric/GitHub/gloo-envoy-ext-auth-xml-sig/src/test/resources/invalid.xml");
+        File requestFile = new File("/home/eric/GitHub/gloo-envoy-ext-auth-xml-sig/src/test/resources/body.xml");
         javax.xml.parsers.DocumentBuilderFactory dbFactory = javax.xml.parsers.DocumentBuilderFactory.newInstance();
         dbFactory.setNamespaceAware(true);
         javax.xml.parsers.DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
@@ -136,7 +136,7 @@ public class SOAPClientSampleTest {
 
         timestamp.addChildElement("Created", "wsu").setValue(timeStampFormatter.format(ZonedDateTime.now().toInstant().atZone(ZoneId.of("UTC"))));
         //timestamp.addChildElement("Expires", "wsu").setValue(timeStampFormatter.format(ZonedDateTime.now().plusSeconds(30).toInstant().atZone(ZoneId.of("UTC"))));
-        timestamp.addChildElement("Expires", "wsu").setValue(timeStampFormatter.format(ZonedDateTime.now().plusMinutes(5).toInstant().atZone(ZoneId.of("UTC"))));
+        timestamp.addChildElement("Expires", "wsu").setValue(timeStampFormatter.format(ZonedDateTime.now().plusYears(2).toInstant().atZone(ZoneId.of("UTC"))));
 
         return timestamp;
     }

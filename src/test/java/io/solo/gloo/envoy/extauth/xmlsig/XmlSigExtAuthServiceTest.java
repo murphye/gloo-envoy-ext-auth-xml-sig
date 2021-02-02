@@ -1,7 +1,7 @@
 package io.solo.gloo.envoy.extauth.xmlsig;
 
-import io.envoyproxy.envoy.service.auth.v3.CheckRequest;
-import io.envoyproxy.envoy.service.auth.v3.CheckResponse;
+import io.envoyproxy.envoy.service.auth.v2.CheckRequest;
+import io.envoyproxy.envoy.service.auth.v2.CheckResponse;
 import io.grpc.stub.StreamObserver;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
@@ -35,7 +35,7 @@ public class XmlSigExtAuthServiceTest {
         var requestBuilder = attributesBuilder.getRequestBuilder();
         var httpBuilder = requestBuilder.getHttpBuilder();
 
-        httpBuilder.putHeaders("Content-Type", "text/xml");
+        httpBuilder.putHeaders("content-type", "text/xml");
         httpBuilder.setBody(getFileString(fileName));
 
         requestBuilder.setHttp(httpBuilder);
