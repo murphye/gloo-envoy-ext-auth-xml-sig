@@ -168,4 +168,6 @@ cd demo
 kubectl apply -n gloo-system -f deployment.yaml
 ```
 
-curl -i -w "\n%{time_total}" --header "Content-Type: text/xml" --data-binary @valid.xml http://localhost:8081/address-xml
+
+
+curl -i -w "\n%{time_total}" --header "Content-Type: text/xml" --data-binary @output.soap.xml http://localhost:8081/address-xml

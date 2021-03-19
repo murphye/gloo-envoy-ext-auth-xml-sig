@@ -12,9 +12,9 @@ spec:
         customAuth: {}
     routes:
     - matchers:
-       - methods:
-          - POST
-         prefix: /address-xml
+      - methods:
+        - POST
+        prefix: /address-xml
       routeAction:
         single:
           upstream:

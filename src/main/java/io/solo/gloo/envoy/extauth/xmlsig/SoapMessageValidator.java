@@ -137,9 +137,6 @@ public class SoapMessageValidator {
         XMLSignature signature = fac.unmarshalXMLSignature(valContext);
 
         boolean validationResult = signature.validate(valContext);
-
-System.out.println("validationResult = " + validationResult);
-
         return validationResult;
 
     }

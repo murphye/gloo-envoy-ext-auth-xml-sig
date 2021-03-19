@@ -176,6 +176,7 @@ nbbuild/
 dist/
 nbdist/
 .nb-gradle/
+target/
 
 ### VisualStudioCode ###
 .vscode/*
@@ -188,3 +189,5 @@ nbdist/
 .project
 .classpath
 .mvn
+.settings
+.project

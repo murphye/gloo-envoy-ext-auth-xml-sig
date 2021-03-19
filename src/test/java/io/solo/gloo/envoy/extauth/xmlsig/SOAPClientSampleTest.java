@@ -1,8 +1,6 @@
 package io.solo.gloo.envoy.extauth.xmlsig;
 
 import java.util.Base64;
-import java.util.Iterator;
-import java.util.Optional;
 
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -11,6 +9,12 @@ import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 
 import io.vertx.junit5.VertxExtension;
+import jakarta.xml.soap.MessageFactory;
+import jakarta.xml.soap.SOAPBody;
+import jakarta.xml.soap.SOAPElement;
+import jakarta.xml.soap.SOAPEnvelope;
+import jakarta.xml.soap.SOAPException;
+import jakarta.xml.soap.SOAPMessage;
 
 import javax.xml.crypto.dom.DOMStructure;
 import javax.xml.crypto.dsig.Reference;
@@ -22,14 +26,11 @@ import javax.xml.crypto.dsig.keyinfo.KeyInfoFactory;
 import javax.xml.crypto.dsig.spec.C14NMethodParameterSpec;
 import javax.xml.crypto.dsig.spec.TransformParameterSpec;
 import javax.xml.parsers.ParserConfigurationException;
-import jakarta.xml.soap.*;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.Reader;
 import java.net.URL;
-import java.nio.CharBuffer;
 import java.security.KeyStore;
 import java.security.PrivateKey;
 import java.security.Provider;
